@@ -369,4 +369,60 @@ export class VideoService {
 
     return { success: true, data: videos };
   }
+
+  async likeVideo(videoId: string, userId: string) {
+    await this.prisma.like.deleteMany({
+      where: { videoId, userId, type: 'DISLIKE' },
+    });
+    const existing = await this.prisma.like.findUnique({
+      where: {
+        userId_videoId_type: {
+          userId,
+          videoId,
+          type: 'LIKE',
+        },
+      },
+    });
+
+    if (existing) return existing;
+    return this.prisma.like.create({
+      data: {
+        userId,
+        videoId,
+        type: 'LIKE',
+      },
+    });
+  }
+
+  async dislikeVideo(videoId: string, userId: string) {
+    await this.prisma.like.deleteMany({
+      where: { videoId, userId, type: 'LIKE' },
+    });
+
+    const existing = await this.prisma.like.findUnique({
+      where: {
+        userId_videoId_type: {
+          userId,
+          videoId,
+          type: 'DISLIKE',
+        },
+      },
+    });
+
+    if (existing) return existing;
+
+    return this.prisma.like.create({
+      data: {
+        userId,
+        videoId,
+        type: 'DISLIKE',
+      },
+    });
+  }
+
+  async removeLikeVideo(videoId: string, userId: string) {
+    return this.prisma.like.deleteMany({
+      where: { videoId, userId },
+    });
+  }
 }

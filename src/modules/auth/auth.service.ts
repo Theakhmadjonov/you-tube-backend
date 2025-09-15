@@ -64,14 +64,19 @@ export class AuthService {
   }
 
   async getMe(userId: string) {
+    console.log(userId);
     const findUSer = await this.db.user.findFirst({
       where: {
         id: userId,
       },
       include: {
-        subscribers: true,
-        subscriptions: true,
+      _count: {
+        select: {
+          subscribers: true,
+          subscriptions: true,
+        },
       },
+    },
     });
     if (!findUSer) throw new NotFoundException('User not found');
     return findUSer;

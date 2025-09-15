@@ -6,6 +6,7 @@ import { EmailOtpService } from './email.service';
 import { OtpSecurityService } from './otp.security.service';
 import { OtpService } from './otp.service';
 import { SmsService } from './sms.service';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [DatabaseModule],
@@ -16,6 +17,7 @@ import { SmsService } from './sms.service';
     SmsService,
     OtpSecurityService,
     EmailOtpService,
+    GoogleStrategy
   ],
   exports: [],
 })

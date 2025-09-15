@@ -8,7 +8,7 @@ import {
   Post,
   Put,
   Query,
-  Request,
+  Req,
   Res,
   SetMetadata,
   UploadedFiles,
@@ -16,7 +16,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { AuthGuard } from 'src/common/guard/auth.guard';
@@ -55,7 +55,7 @@ export class VideoController {
       video?: Express.Multer.File[];
       poster?: Express.Multer.File[];
     },
-    @Request() req: string,
+    @Req() req: string,
     @Body() data: CreateVideoDto,
   ) {
     const videoFile = files?.video?.[0];
@@ -64,7 +64,6 @@ export class VideoController {
       throw new BadRequestException('Videofile not found');
     }
     const userId = req['userId'].id;
-    console.log('shu', videoFile, posterFile, userId);
     return this.videoService.uploadVideo(videoFile, posterFile, userId, data);
   }
 
@@ -73,16 +72,14 @@ export class VideoController {
     @Param('id') id: string,
     @Query('quality') quality: string,
     @Res() res: Response,
-    @Request() req,
+    @Req() req,
   ) {
-    console.log('video korilyapti');
     const range = req.headers.range || '';
     return this.videoService.watchVideo(id, quality || '720', range, res);
   }
 
   @Get('video/:id')
   async getVideoDetail(@Param('id') id: string) {
-    console.log("aniq keldi");
     return await this.videoService.getVideoDetail(id);
   }
 
@@ -105,13 +102,13 @@ export class VideoController {
   @Put(':id')
   async updateVideo(
     @Param('id') id: string,
-    @Request() req,
+    @Req() req,
     @Body() body: any,
   ) {
     return this.videoService.updateVideo(id, req.user.id, body);
   }
   @Delete(':id')
-  async deleteVideo(@Param('id') id: string, @Request() req) {
+  async deleteVideo(@Param('id') id: string, @Req() req) {
     return this.videoService.deleteVideo(id, req.user.id);
   }
 
@@ -144,5 +141,28 @@ export class VideoController {
       region || 'global',
       timeframe || '24h',
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/like')
+  async likeVideo(@Param('id') id: string, @Req() req: Request) {
+    console.log("keeeeelid");
+    const { id: userId, role } = req['userId'];
+    console.log(userId);
+    return this.videoService.likeVideo(id, userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/dislike')
+  async dislikeVideo(@Param('id') id: string, @Req() req: Request) {
+    const { id: userId, role } = req['userId'];
+    return this.videoService.dislikeVideo(id, userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id/like')
+  async removeLikeVideo(@Param('id') id: string, @Req() req: Request) {
+    const { id: userId, role } = req['userId'];
+    return this.videoService.removeLikeVideo(id, userId);
   }
 }
