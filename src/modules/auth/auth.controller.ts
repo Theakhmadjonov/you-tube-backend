@@ -18,6 +18,7 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { sendCodeLoginDto, verifyCodeLoginDto } from './dto/login-auth.dto';
 import { Request, Response } from 'express';
 import { AuthGuard as GoogleGuard } from '@nestjs/passport';
+import { AuthGuard } from 'src/common/guard/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -32,11 +33,23 @@ export class AuthController {
 
   @Get()
   @UseGuards(GoogleGuard('google'))
-  async oauthGoogleCallback(@Req() req: Request) {
+  async oauthGoogleCallback(@Req() req: Request, @Res() res: Response) {
     const user = req['user'];
-    return await this.authService
-  }   
-    
+    const token = await this.authService.oauthGoogleCallback(user);
+    res.cookie('token', token, {
+      maxAge: 1.1 * 3600 * 1000,
+      httpOnly: true,
+    });
+    return res.redirect('http://localhost:5173');
+  }
+
+  @Get()
+  @UseGuards(AuthGuard)
+  async getMe(@Req() req: Request) {
+    const { id, role } = req['userId'];
+    return await this.authService.getMe(id);
+  }
+
   @Post('send-otp')
   async sendOtpUser(@Body() sendOtpDto: SendOtpDto) {
     const response = await this.authService.sendOtpUser(sendOtpDto);
@@ -58,7 +71,7 @@ export class AuthController {
       maxAge: 1.1 * 3600 * 1000,
       httpOnly: true,
     });
-    return { token };
+    return token;
   }
 
   @Post('send-code-login')
@@ -93,7 +106,7 @@ export class AuthController {
     try {
       const token = await this.emailOtpService.sendEmailLink(email);
       return {
-        message: 'Email muvaffaqiyatli yuborildi',
+        message: 'Email successfully sended',
         token,
       };
     } catch (error) {
@@ -109,10 +122,7 @@ export class AuthController {
 
     const data = await this.emailOtpService.getEmailToken(token);
     if (!data) {
-      throw new HttpException(
-        "Token eskirgan yoki notog'ri",
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('Token expired', HttpStatus.BAD_REQUEST);
     }
 
     return JSON.parse(data);

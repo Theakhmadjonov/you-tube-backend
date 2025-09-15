@@ -4,6 +4,7 @@ import {
   BadRequestException,
   UnauthorizedException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/core/database/prisma.service';
@@ -38,8 +39,42 @@ export class AuthService {
     };
   }
 
-  async oauthGoogleCallback() {
-    
+  async oauthGoogleCallback(user: any) {
+    const findUSer = await this.db.user.findFirst({
+      where: { email: user.email },
+    });
+    if (!findUSer) {
+      const newUser = await this.db.user.create({
+        data: {
+          email: user.email,
+          username: user.fullName,
+        },
+      });
+      const token = await this.jwtService.signAsync({
+        id: newUser.id,
+        role: newUser.role,
+      });
+      return { token };
+    }
+    const token = await this.jwtService.signAsync({
+      id: findUSer.id,
+      role: findUSer.role,
+    });
+    return { token };
+  }
+
+  async getMe(userId: string) {
+    const findUSer = await this.db.user.findFirst({
+      where: {
+        id: userId,
+      },
+      include: {
+        subscribers: true,
+        subscriptions: true,
+      },
+    });
+    if (!findUSer) throw new NotFoundException('User not found');
+    return findUSer;
   }
 
   async verifyOtp(data: VerifyOtpDto) {
@@ -93,14 +128,15 @@ export class AuthService {
       });
       if (!findUser) throw new ConflictException('User not found');
 
-      const checkPassword = await bcrypt.compare(
-        data.password,
-        findUser.password,
-      );
-      if (!checkPassword) {
-        throw new UnauthorizedException('Incorrect password');
+      if (findUser.password) {
+        const checkPassword = await bcrypt.compare(
+          data.password,
+          findUser.password,
+        );
+        if (!checkPassword) {
+          throw new UnauthorizedException('Incorrect password');
+        }
       }
-
       const res = await this.otpService.sendOtp(data.phone);
       if (!res) throw new InternalServerErrorException('Server error');
 
