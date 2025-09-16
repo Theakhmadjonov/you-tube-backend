@@ -2,17 +2,18 @@ import {
   Controller,
   Get,
   Param,
-  Request,
   Put,
   Body,
   UseGuards,
   Post,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ChannelService } from './channel.service';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { Request } from 'express';
 
 @Controller('channels')
 export class ChannelController {
@@ -36,39 +37,58 @@ export class ChannelController {
 
   @UseGuards(AuthGuard)
   @Put('me')
-  async updateChannel(@Request() req, @Body() dto: UpdateChannelDto) {
-    return this.channelService.updateChannel(req.user?.id, dto);
+  async updateChannel(@Req() req: Request, @Body() dto: UpdateChannelDto) {
+    const { id: userId, role } = req['userId'];
+    return this.channelService.updateChannel(userId, dto);
   }
 
   @UseGuards(AuthGuard)
-  @Post(':userId/subscribe')
-  async subscribe(@Request() req, @Param('userId') userId: string) {
-    return this.channelService.subscribe(req.user?.id, userId);
+  @Post('/subscribe/:authorId')
+  async subscribe(@Req() req: Request, @Param('authorId') auhtorId: string) {
+    const { id: userId, role } = req['userId'];
+    console.log(userId, auhtorId, 'shuu');
+    console.log('subs');
+    return this.channelService.subscribe(userId, auhtorId);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':userId/subscribe')
-  async unsubscribe(@Request() req, @Param('userId') userId: string) {
-    return this.channelService.unsubscribe(req.user?.id, userId);
+  @Delete('/subscribe/:authorId')
+  async unsubscribe(@Req() req: Request, @Param('authorId') authorId: string) {
+    const { id: userId, role } = req['userId'];
+    console.log('unsubs');
+    return this.channelService.unsubscribe(userId, authorId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/subscribe/:authorId')
+  async checkSubscribe(
+    @Req() req: Request,
+    @Param('authorId') authorId: string,
+  ) {
+    const { id: userId, role } = req['userId'];
+    console.log('chechksubs');
+    return this.channelService.checkSubscribe(userId, authorId);
   }
 
   @UseGuards(AuthGuard)
   @Get('subscriptions')
   async getSubscriptions(
-    @Request() req,
+    @Req() req: Request,
     @Query('limit') limit = 20,
     @Query('page') page = 1,
   ) {
-    return this.channelService.getSubscriptions(req.user?.id, +limit, +page);
+    const { id: userId, role } = req['userId'];
+    return this.channelService.getSubscriptions(userId, +limit, +page);
   }
 
   @UseGuards(AuthGuard)
   @Get('subscriptions/feed')
   async getSubscriptionFeed(
-    @Request() req,
+    @Req() req: Request,
     @Query('limit') limit = 20,
     @Query('page') page = 1,
   ) {
-    return this.channelService.getSubscriptionFeed(req.user?.id, +limit, +page);
+    const { id: userId, role } = req['userId'];
+    return this.channelService.getSubscriptionFeed(userId, +limit, +page);
   }
 }

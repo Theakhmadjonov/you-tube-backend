@@ -123,7 +123,6 @@ export class ChannelService {
     if (viewerId === channelId) {
       throw new ForbiddenException("You can't subscribe to yourself");
     }
-
     const exists = await this.prisma.subscription.findUnique({
       where: {
         subscriberId_channelId: {
@@ -158,6 +157,19 @@ export class ChannelService {
     });
 
     return { message: 'Unsubsciribed successfully' };
+  }
+
+  async checkSubscribe(viewerId: string, channelId: string) {
+    const exists = await this.prisma.subscription.findUnique({
+      where: {
+        subscriberId_channelId: {
+          subscriberId: viewerId,
+          channelId: channelId,
+        },
+      },
+    });
+    if (!exists) return { subscribed: false };
+    return { subscribed: true };
   }
 
   async getSubscriptions(userId: string, limit: number, page: number) {

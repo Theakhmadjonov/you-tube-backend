@@ -205,7 +205,6 @@ export class VideoService {
   }
 
   async watchVideo(id: string, quality: string, range: string, res: Response) {
-    console.log(quality);
     const baseQuality = `${quality}p.mp4`;
     const videoPath = path.join(
       process.cwd(),
@@ -245,8 +244,24 @@ export class VideoService {
         id,
       },
       include: {
-        author: true,
+        author: {
+          select: {
+            subscribers: true,
+            channelBanner: true,
+            channelDescription: true,
+            channelName: true,
+            firstName: true,
+            avatar: true,
+            id: true,
+          },
+        },
         likes: true,
+      },
+    });
+    await this.prisma.video.update({
+      where: { id },
+      data: {
+        viewsCount: { increment: 1 },
       },
     });
     return data;
