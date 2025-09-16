@@ -11,13 +11,13 @@ export class RedisService {
       port: +(process.env.REDIS_PORT as string),
       host: process.env.REDIS_HOST as string,
     });
-    this.redis.on('connect', () => {
-      this.logger.log('Redis connected!!');
-    });
+    // this.redis.on('connect', () => {
+    //   this.logger.log('Redis connected!!');
+    // });
     this.redis.on('error', (err) => {
       this.logger.error('Redis connecting error!!');
       this.redis.quit();
-      process.exit(1);
+      // process.exit(1);
     });
   }
   async setOtp(phone_number: string, otp: string): Promise<string> {

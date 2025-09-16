@@ -17,8 +17,9 @@ export class AuthGuard implements CanActivate {
     if (!token) {
       token = request.cookies.token;
     }
+    console.log(token);
     try {
-      console.log(token, "tok");
+      console.log(token.token, "tok");
       const { id, role } = await this.jwtService.verifyAsync(token.token);
       console.log(role, id, "id va rol");
       request.userId = { id, role };

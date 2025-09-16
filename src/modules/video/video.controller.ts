@@ -158,10 +158,11 @@ export class VideoController {
     const { id: userId, role } = req['userId'];
     return this.videoService.dislikeVideo(id, userId);
   }
-
+  
   @UseGuards(AuthGuard)
   @Delete(':id/like')
   async removeLikeVideo(@Param('id') id: string, @Req() req: Request) {
+    console.log("dislike");
     const { id: userId, role } = req['userId'];
     return this.videoService.removeLikeVideo(id, userId);
   }
