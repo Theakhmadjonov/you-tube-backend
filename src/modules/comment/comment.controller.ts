@@ -8,11 +8,13 @@ import {
   Delete,
   Patch,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { CommentsService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Request } from 'express';
 
 @Controller('videos/:id/comments')
 export class CommentController {
@@ -23,8 +25,10 @@ export class CommentController {
   async createComment(
     @Param('id') id: string,
     @Body() dto: CreateCommentDto,
-    @CurrentUser('id') userId: string,
+    @Req() req: Request,
   ) {
+    const { id: userId, role } = req['userId'];
+    console.log(id, userId, 'shuhuuu');
     return this.commentsService.createComment(id, userId, dto);
   }
 

@@ -34,7 +34,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleGuard('google'))
   async oauthGoogleCallback(@Req() req: Request, @Res() res: Response) {
-    console.log("keldi");
+    console.log('keldi');
     const user = req['user'];
     const token = await this.authService.oauthGoogleCallback(user);
     res.cookie('token', token, {
@@ -44,10 +44,15 @@ export class AuthController {
     return res.redirect('http://localhost:5173');
   }
 
-  @Get("me")
+  @Post('/log')
+  async log(@Body() email: { email: string }) {
+    return await this.authService.log(email.email);
+  }
+
+  @Get('me')
   @UseGuards(AuthGuard)
   async getMe(@Req() req: Request) {
-    console.log("mega keldi");
+    console.log('mega keldi');
     const { id, role } = req['userId'];
     return await this.authService.getMe(id);
   }

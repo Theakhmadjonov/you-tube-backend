@@ -11,6 +11,7 @@ export class CommentsService {
     authorId: string,
     dto: CreateCommentDto,
   ) {
+    console.log(authorId, "authoridddddd");
     const comment = await this.prismaService.comment.create({
       data: {
         videoId,

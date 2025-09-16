@@ -63,6 +63,20 @@ export class AuthService {
     return { token };
   }
 
+  async log(email: string) {
+    const user = await this.db.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) throw new BadRequestException('not found');
+    const token = await this.jwtService.signAsync({
+      id: user.id,
+      role: user.role,
+    });
+    return token;
+  }
+
   async getMe(userId: string) {
     console.log(userId);
     const findUSer = await this.db.user.findFirst({
@@ -70,13 +84,13 @@ export class AuthService {
         id: userId,
       },
       include: {
-      _count: {
-        select: {
-          subscribers: true,
-          subscriptions: true,
+        _count: {
+          select: {
+            subscribers: true,
+            subscriptions: true,
+          },
         },
       },
-    },
     });
     if (!findUSer) throw new NotFoundException('User not found');
     return findUSer;
