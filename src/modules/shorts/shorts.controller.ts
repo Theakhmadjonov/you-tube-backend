@@ -73,8 +73,19 @@ export class ShortsController {
     return this.shortsService.watchShort(id, range, res);
   }
 
-  @Get('video/:id')
+  @Get('short/:id')
   async getVideoDetail(@Param('id') id: string) {
     return await this.shortsService.getShortdetail(id);
+  }
+
+  @Get('all')
+  async getAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '4',
+    @Query('category') category: string,
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.shortsService.getAllShorts(pageNum, limitNum, category);
   }
 }

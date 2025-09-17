@@ -10,6 +10,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import { CreateShortsDto } from './dto/create-short.dto';
 import VideoConvertService from '../video/video_convert.service';
 import { Response } from 'express';
+import { Category, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ShortsService {
@@ -113,6 +114,80 @@ export class ShortsService {
   }
 
   async getShortdetail(videoId: string) {
-    
+    const data = await this.prisma.shorts.findFirst({
+      where: {
+        id: videoId,
+      },
+      include: {
+        author: {
+          select: {
+            subscribers: true,
+            channelBanner: true,
+            channelDescription: true,
+            channelName: true,
+            firstName: true,
+            avatar: true,
+            id: true,
+          },
+        },
+        likes: true,
+      },
+    });
+    await this.prisma.shorts.update({
+      where: { id: videoId },
+      data: {
+        viewsCount: { increment: 1 },
+      },
+    });
+    return data;
+  }
+
+  async getAllShorts(page: number, limit: number, category: string) {
+    const skip = (page - 1) * limit;
+    const where: Prisma.ShortsWhereInput =
+      category && category !== 'all' ? { category: category as Category } : {};
+
+    const [videos, total] = await this.prisma.$transaction([
+      this.prisma.shorts.findMany({
+        skip,
+        take: limit,
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone_number: true,
+              channelName: true,
+              channelBanner: true,
+              channelDescription: true,
+              comments: true,
+              likes: true,
+              notifications: true,
+              createdAt: true,
+            },
+          },
+        },
+      }),
+      this.prisma.shorts.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: videos,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 }
