@@ -87,9 +87,15 @@ export class ShortsService {
   }
 
   async watchShort(id: string, range: string, res: Response) {
-    const videoPath = path.join(process.cwd(), 'uploads', 'shorts', id);
+    let videoPath = path.join(process.cwd(), 'uploads', 'shorts', `${id}.MP4`);
+    console.log(videoPath, 'path');
     if (!fs.existsSync(videoPath)) {
-      throw new NotFoundException('Video file not found on server');
+      videoPath = path.join(process.cwd(), 'uploads', 'shorts', `${id}.mp4`);
+      if (!fs.existsSync(videoPath)) {
+        throw new NotFoundException('Video file not found on server');
+      } else {
+        true;
+      }
     }
     const { size } = fs.statSync(videoPath);
     if (!range) {

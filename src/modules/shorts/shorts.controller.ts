@@ -68,6 +68,7 @@ export class ShortsController {
 
   @Get('watch/:id')
   async watch(@Param('id') id: string, @Res() res: Response, @Req() req) {
+    console.log(id, "keldi");
     const range = req.headers.range || '';
 
     return this.shortsService.watchShort(id, range, res);
