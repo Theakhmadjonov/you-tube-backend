@@ -1,11 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class SubscriptionService {
-  create(createSubscriptionDto: CreateSubscriptionDto) {
-    return 'This action adds a new subscription';
+  constructor(private db: PrismaService) {}
+  async getAllUserSubscriptions(userId: string) {
+    const subscriptions = await this.db.subscription.findMany({
+      where: {
+        subscriberId: userId,
+      },
+      include: {
+        channel: true,
+        subscriber: true,
+      },
+    });
+    return subscriptions;
   }
 
   findAll() {
