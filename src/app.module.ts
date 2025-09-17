@@ -15,6 +15,7 @@ import { CommentModule } from './modules/comment/comment.module';
 import { PlaylistModule } from './modules/playlist/playlist.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ShortsModule } from './modules/shorts/shorts.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ShortsModule } from './modules/shorts/shorts.module';
     PlaylistModule,
     AdminModule,
     ShortsModule,
+    SubscriptionModule,
   ],
   providers: [
     {
