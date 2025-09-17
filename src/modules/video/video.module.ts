@@ -4,7 +4,7 @@ import { VideoService } from './video.service';
 import { VideoController } from './video.controller';
 import VideoConvertService from './video_convert.service';
 import { diskStorage } from 'multer';
-import * as path from 'path';
+import path from 'path';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({

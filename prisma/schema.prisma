@@ -43,6 +43,7 @@ model User {
   subscriptions      Subscription[] @relation("UserSubscriptions")
   subscribers        Subscription[] @relation("UserSubscribers")
   playlists          Playlist[]
+  Shorts             Shorts[]
 
   @@map("user")
 }
@@ -83,6 +84,29 @@ model Video {
   @@map("video")
 }
 
+model Shorts {
+  id             String          @id @default(uuid())
+  title          String
+  description    String?
+  videoUrl       String
+  posterUrl      String
+  duration       Int
+  category       Category
+  playlistVideos PlaylistVideo[]
+  watchHistory   WatchHistory[]
+  status         VideoStatus     @default(PROCESSING)
+  visibility     Visibility      @default(PUBLIC)
+  viewsCount     Int             @default(0)
+  likesCount     Int             @default(0)
+  dislikesCount  Int             @default(0)
+  createdAt      DateTime        @default(now())
+  authorId       String
+  author         User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes          Like[]
+
+  @@map("shorts")
+}
+
 // KEYINROQ QO'SHISH MUMKIN:
 // - fileSize BigInt
 // - resolution String // 1080p, 720p, etc.
@@ -111,6 +135,7 @@ model Comment {
   parentId String?
   parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies  Comment[] @relation("CommentReplies")
+  shortsId String?
 
   @@map("comment")
 }
@@ -152,6 +177,8 @@ model PlaylistVideo {
   playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
   videoId    String
   video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  Shorts     Shorts?  @relation(fields: [shortsId], references: [id])
+  shortsId   String?
 
   @@unique([playlistId, videoId])
   @@map("playlistvideo")
@@ -168,6 +195,8 @@ model Like {
   video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
   commentId String?
   comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  Shorts    Shorts?  @relation(fields: [shortsId], references: [id])
+  shortsId  String?
 
   @@unique([userId, videoId, type])
   @@unique([userId, commentId, type])
@@ -186,10 +215,12 @@ model WatchHistory {
   watchedAt DateTime @default(now())
   watchTime Int // seconds watched
 
-  userId  String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  videoId String
-  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId  String
+  video    Video   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  Shorts   Shorts? @relation(fields: [shortsId], references: [id])
+  shortsId String?
 
   @@unique([userId, videoId])
   @@map("watchhistory")

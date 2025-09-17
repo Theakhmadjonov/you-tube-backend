@@ -14,6 +14,7 @@ import { ChannelModule } from './modules/channel/channel.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { PlaylistModule } from './modules/playlist/playlist.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ShortsModule } from './modules/shorts/shorts.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AdminModule } from './modules/admin/admin.module';
     CommentModule,
     PlaylistModule,
     AdminModule,
+    ShortsModule,
   ],
   providers: [
     {

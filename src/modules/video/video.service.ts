@@ -110,50 +110,6 @@ export class VideoService {
     return { message: 'Video muvaffaqiyatli yuklandi', newVideo };
   }
 
-  // async getAllVideos(page: number, limit: number, category: string) {
-  //   const skip = (page - 1) * limit;
-  //   const [videos, total] = await this.prisma.$transaction([
-  //     this.prisma.video.findMany({
-  //       skip,
-  //       take: limit,
-  //       orderBy: { createdAt: 'desc' },
-  //       include: {
-  //         author: {
-  //           select: {
-  //             username: true,
-  //             channelName: true,
-  //             channelBanner: true,
-  //             channelDescription: true,
-  //             comments: true,
-  //             createdAt: true,
-  //             email: true,
-  //             firstName: true,
-  //             id: true,
-  //             lastName: true,
-  //             likes: true,
-  //             phone_number: true,
-  //             notifications: true,
-  //           },
-  //         },
-  //       },
-  //     }),
-  //     this.prisma.video.count(),
-  //   ]);
-
-  //   const totalPages = Math.ceil(total / limit);
-
-  //   return {
-  //     data: videos,
-  //     pagination: {
-  //       total,
-  //       page,
-  //       limit,
-  //       totalPages,
-  //       hasNextPage: page < totalPages,
-  //       hasPrevPage: page > 1,
-  //     },
-  //   };
-  // }
 
   async getAllVideos(page: number, limit: number, category: string) {
     const skip = (page - 1) * limit;
