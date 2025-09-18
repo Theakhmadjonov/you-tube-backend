@@ -10,15 +10,15 @@ import { JwtService } from '@nestjs/jwt';
 export class AuthGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    console.log("authgfg");
     const request = context.switchToHttp().getRequest();
-
     let token = request.headers['authorization']?.split(' ')[1];
 
     if (!token) {
       token = request.cookies.token;
     }
     try {
-      // console.log(token);
+      console.log(token);
       const { id, role } = await this.jwtService.verifyAsync(token.token || token);
       request.userId = { id, role };
 

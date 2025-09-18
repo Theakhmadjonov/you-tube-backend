@@ -2,8 +2,10 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { UpdateChannelDto } from './dto/update-channel.dto';
 
 @Injectable()
 export class ChannelService {
@@ -73,6 +75,18 @@ export class ChannelService {
     };
   }
 
+  async getCahnnelExists(userId: string) {
+    const existChannel = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+    if (existChannel?.channelName === '') {
+      return { message: 'Channel disactive', data: false };
+    }
+    return { message: 'Channel active', data: existChannel };
+  }
+
   async getChannelVideos(
     username: string,
     limit: number,
@@ -108,15 +122,30 @@ export class ChannelService {
     }));
   }
 
-  async updateChannel(userId: string, dto: any) {
-    return this.prisma.user.update({
+  async updateChannel(
+    userId: string,
+    dto: UpdateChannelDto,
+    channelBanner: Express.Multer.File | undefined,
+    avatar: Express.Multer.File | undefined,
+  ) {
+    const channelBannerPath = channelBanner
+      ? `/uploads/channel/${channelBanner.filename}`
+      : undefined;
+    const avatarPath = avatar
+      ? `/uploads/channel/${avatar.filename}`
+      : undefined;
+
+    const updatedChannelInfo = await this.prisma.user.update({
       where: { id: userId },
       data: {
         channelName: dto.channelName,
         channelDescription: dto.channelDescription,
-        channelBanner: dto.channelBanner,
+        ...(channelBannerPath ? { channelBanner: channelBannerPath } : {}),
+        ...(avatarPath ? { avatar: avatarPath } : {}),
       },
     });
+    if (!updatedChannelInfo) throw new BadRequestException('Channelinfo false');
+    return updatedChannelInfo;
   }
 
   async subscribe(viewerId: string, channelId: string) {

@@ -1,19 +1,23 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   Put,
-  Body,
-  UseGuards,
-  Post,
-  Delete,
   Query,
   Req,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ChannelService } from './channel.service';
-import { AuthGuard } from 'src/common/guard/auth.guard';
-import { UpdateChannelDto } from './dto/update-channel.dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { AuthGuard } from 'src/common/guard/auth.guard';
+import { ChannelService } from './channel.service';
+import { UpdateChannelDto } from './dto/update-channel.dto';
+
 
 @Controller('channels')
 export class ChannelController {
@@ -21,8 +25,7 @@ export class ChannelController {
 
   @Get('/:username')
   async getChannel(@Param('username') username: string) {
-    // console.log(username);
-    return this.channelService.getChannelInfo(username);
+    return await this.channelService.getChannelInfo(username);
   }
 
   @Get(':username/videos')
@@ -32,63 +35,60 @@ export class ChannelController {
     @Query('page') page = 1,
     @Query('sort') sort = 'newest',
   ) {
-    return this.channelService.getChannelVideos(username, +limit, +page, sort);
+    return await this.channelService.getChannelVideos(
+      username,
+      +limit,
+      +page,
+      sort,
+    );
   }
 
   @UseGuards(AuthGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'avatar', maxCount: 1 },
+        { name: 'channelBanner', maxCount: 1 },
+      ],
+      {
+        storage: diskStorage({
+          destination: './uploads/channel',
+          filename: (req, file, callback) => {
+            const fileExt = extname(file.originalname);
+            const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
+            callback(null, uniqueName);
+          },
+        }),
+      },
+    ),
+  )
   @Put('me')
-  async updateChannel(@Req() req: Request, @Body() dto: UpdateChannelDto) {
-    const { id: userId, role } = req['userId'];
-    return this.channelService.updateChannel(userId, dto);
-  }
-
-  @UseGuards(AuthGuard)
-  @Post('/subscribe/:authorId')
-  async subscribe(@Req() req: Request, @Param('authorId') auhtorId: string) {
-    const { id: userId, role } = req['userId'];
-    console.log(userId, auhtorId, 'shuu');
-    console.log('subs');
-    return this.channelService.subscribe(userId, auhtorId);
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete('/subscribe/:authorId')
-  async unsubscribe(@Req() req: Request, @Param('authorId') authorId: string) {
-    const { id: userId, role } = req['userId'];
-    console.log('unsubs');
-    return this.channelService.unsubscribe(userId, authorId);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('/subscribe/:authorId')
-  async checkSubscribe(
+  async updateChannel(
+    @UploadedFiles()
+    files: {
+      avatar?: Express.Multer.File[];
+      channelBanner?: Express.Multer.File[];
+    },
     @Req() req: Request,
-    @Param('authorId') authorId: string,
+    @Body() dto: UpdateChannelDto,
   ) {
+    const avatar = files?.avatar?.[0];
+    const channelBanner = files?.channelBanner?.[0];
     const { id: userId, role } = req['userId'];
-    console.log('chechksubs');
-    return this.channelService.checkSubscribe(userId, authorId);
+    console.log(dto, userId);
+    return await this.channelService.updateChannel(
+      userId,
+      dto,
+      channelBanner,
+      avatar,
+    );
   }
 
   @UseGuards(AuthGuard)
-  @Get('subscriptions')
-  async getSubscriptions(
-    @Req() req: Request,
-    @Query('limit') limit = 20,
-    @Query('page') page = 1,
-  ) {
+  @Get('check/channel')
+  async checkChannel(@Req() req: Request) {
+    console.log("bir nima");
     const { id: userId, role } = req['userId'];
-    return this.channelService.getSubscriptions(userId, +limit, +page);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('subscriptions/feed')
-  async getSubscriptionFeed(
-    @Req() req: Request,
-    @Query('limit') limit = 20,
-    @Query('page') page = 1,
-  ) {
-    const { id: userId, role } = req['userId'];
-    return this.channelService.getSubscriptionFeed(userId, +limit, +page);
+    return await this.channelService.getCahnnelExists(userId);
   }
 }

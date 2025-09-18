@@ -11,7 +11,6 @@ export class SubscriptionController {
   @Get('all')
   async getUserSubscriptions(@Req() req: Request) {
     const { id: userId, role } = req['userId'];
-    console.log('keldi');
     const data = await this.subscriptionService.getAllUserSubscriptions(userId);
     console.log(data);
     return data;

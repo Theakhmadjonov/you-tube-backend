@@ -87,6 +87,6 @@ export class ShortsController {
   ) {
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
-    return this.shortsService.getAllShorts(pageNum, limitNum, category);
+    return await this.shortsService.getAllShorts(pageNum, limitNum, category);
   }
 }
