@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { console } from 'inspector';
 
 @Injectable()
 export class ChannelService {
@@ -134,7 +135,6 @@ export class ChannelService {
     const avatarPath = avatar
       ? `/uploads/channel/${avatar.filename}`
       : undefined;
-
     const updatedChannelInfo = await this.prisma.user.update({
       where: { id: userId },
       data: {

@@ -55,16 +55,28 @@ export class VideoController {
       video?: Express.Multer.File[];
       poster?: Express.Multer.File[];
     },
-    @Req() req: string,
-    @Body() data: CreateVideoDto,
+    @Req() req: Request,
+    @Body() data?: CreateVideoDto,
   ) {
     const videoFile = files?.video?.[0];
     const posterFile = files?.poster?.[0];
+    const { title, description, category } = req.body;
     if (!videoFile) {
       throw new BadRequestException('Videofile not found');
     }
     const userId = req['userId'].id;
-    return this.videoService.uploadVideo(videoFile, posterFile, userId, data);
+    return await this.videoService.uploadVideo(
+      videoFile,
+      posterFile,
+      userId,
+      data
+        ? data
+        : {
+            title,
+            description,
+            category,
+          },
+    );
   }
 
   @Get('watch/:id')
@@ -100,11 +112,7 @@ export class VideoController {
   }
 
   @Put(':id')
-  async updateVideo(
-    @Param('id') id: string,
-    @Req() req,
-    @Body() body: any,
-  ) {
+  async updateVideo(@Param('id') id: string, @Req() req, @Body() body: any) {
     return this.videoService.updateVideo(id, req.user.id, body);
   }
   @Delete(':id')
@@ -146,7 +154,7 @@ export class VideoController {
   @UseGuards(AuthGuard)
   @Post(':id/like')
   async likeVideo(@Param('id') id: string, @Req() req: Request) {
-    console.log("keeeeelid");
+    console.log('keeeeelid');
     const { id: userId, role } = req['userId'];
     console.log(userId);
     return this.videoService.likeVideo(id, userId);
@@ -158,11 +166,11 @@ export class VideoController {
     const { id: userId, role } = req['userId'];
     return this.videoService.dislikeVideo(id, userId);
   }
-  
+
   @UseGuards(AuthGuard)
   @Delete(':id/like')
   async removeLikeVideo(@Param('id') id: string, @Req() req: Request) {
-    console.log("dislike");
+    console.log('dislike');
     const { id: userId, role } = req['userId'];
     return this.videoService.removeLikeVideo(id, userId);
   }

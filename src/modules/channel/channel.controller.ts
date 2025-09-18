@@ -70,15 +70,15 @@ export class ChannelController {
       channelBanner?: Express.Multer.File[];
     },
     @Req() req: Request,
-    @Body() dto: UpdateChannelDto,
   ) {
     const avatar = files?.avatar?.[0];
     const channelBanner = files?.channelBanner?.[0];
     const { id: userId, role } = req['userId'];
-    console.log(dto, userId);
+    const { channelName, channelDescription } = req.body;
+    console.log(channelName, channelDescription, "shu");
     return await this.channelService.updateChannel(
       userId,
-      dto,
+      {channelName, channelDescription},
       channelBanner,
       avatar,
     );

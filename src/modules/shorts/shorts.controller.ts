@@ -20,7 +20,7 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RoleGuard } from 'src/common/guard/role.guard';
 import { ShortsService } from './shorts.service';
 import { CreateShortsDto } from './dto/create-short.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('shorts')
 export class ShortsController {
@@ -53,8 +53,8 @@ export class ShortsController {
       video?: Express.Multer.File[];
       poster?: Express.Multer.File[];
     },
-    @Req() req: string,
-    @Body() data: CreateShortsDto,
+    @Req() req: Request,
+    @Body() data?: CreateShortsDto,
   ) {
     const videoFile = files?.video?.[0];
     const posterFile = files?.poster?.[0];
@@ -62,13 +62,25 @@ export class ShortsController {
     if (!videoFile) {
       throw new BadRequestException('Video fayl topilmadi');
     }
+    const { title, description, category } = req.body;
     const userId = req['userId'].id;
-    return this.shortsService.uploadShort(videoFile, posterFile, userId, data);
+    return this.shortsService.uploadShort(
+      videoFile,
+      posterFile,
+      userId,
+      data
+        ? data
+        : {
+            title,
+            description,
+            category,
+          },
+    );
   }
 
   @Get('watch/:id')
   async watch(@Param('id') id: string, @Res() res: Response, @Req() req) {
-    console.log(id, "keldi");
+    console.log(id, 'keldi');
     const range = req.headers.range || '';
 
     return this.shortsService.watchShort(id, range, res);
