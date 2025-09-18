@@ -8,15 +8,55 @@ export class SubscriptionService {
   constructor(private db: PrismaService) {}
   async getAllUserSubscriptions(userId: string) {
     const subscriptions = await this.db.subscription.findMany({
-      where: {
-        subscriberId: userId,
-      },
-      include: {
-        channel: true,
-        subscriber: true,
-      },
+      where: { subscriberId: userId },
+      select: { channelId: true },
     });
-    return subscriptions;
+
+    if (!subscriptions.length) return [];
+
+    // 2. Channel bo‘yicha videos va shorts olish
+    const result = await Promise.all(
+      subscriptions.map(async (sub) => {
+        const [videos, shorts] = await Promise.all([
+          this.db.video.findMany({
+            where: { authorId: sub.channelId, visibility: 'PUBLIC' },
+            orderBy: { createdAt: 'desc' },
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  channelName: true,
+                  avatar: true,
+                },
+              },
+            },
+          }),
+          this.db.shorts.findMany({
+            where: { authorId: sub.channelId, visibility: 'PUBLIC' },
+            orderBy: { createdAt: 'desc' },
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  channelName: true,
+                  avatar: true,
+                },
+              },
+            },
+          }),
+        ]);
+
+        return {
+          channelId: sub.channelId,
+          videos,
+          shorts,
+        };
+      }),
+    );
+
+    return result;
   }
 
   findAll() {
